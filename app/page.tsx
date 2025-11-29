@@ -1,42 +1,74 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { CheckCircle2, Sparkles, Users, TrendingUp, Mail } from 'lucide-react';
-import Image from 'next/image';
+import { useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  CheckCircle2,
+  Sparkles,
+  Users,
+  TrendingUp,
+  Mail,
+  ChevronDown,
+  ChevronUp,
+  User,
+  Phone,
+  Linkedin,
+} from "lucide-react";
+import Image from "next/image";
 
 export default function WaitlistPage() {
-  const [email, setEmail] = useState('');
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [message, setMessage] = useState('');
+  const [email, setEmail] = useState("");
+  const [showExtendedForm, setShowExtendedForm] = useState(false);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [linkedinUrl, setLinkedinUrl] = useState("");
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
+  const [message, setMessage] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus('loading');
-    setMessage('');
+    setStatus("loading");
+    setMessage("");
 
     try {
-      const { error } = await supabase
-        .from('waitlist')
-        .insert([{ email: email.toLowerCase() }]);
+      const formData: any = {
+        email: email.toLowerCase(),
+      };
+
+      // Ajouter les champs optionnels s'ils sont remplis
+      if (firstName.trim()) formData.first_name = firstName.trim();
+      if (lastName.trim()) formData.last_name = lastName.trim();
+      if (phone.trim()) formData.phone = phone.trim();
+      if (linkedinUrl.trim()) formData.linkedin_url = linkedinUrl.trim();
+
+      const { error } = await supabase.from("waitlist").insert([formData]);
 
       if (error) {
-        if (error.code === '23505') {
-          setMessage('Cet email est déjà inscrit sur la liste d\'attente !');
+        if (error.code === "23505") {
+          setMessage("Cet email est déjà inscrit sur la liste d'attente !");
         } else {
-          setMessage('Une erreur est survenue. Veuillez réessayer.');
+          setMessage("Une erreur est survenue. Veuillez réessayer.");
         }
-        setStatus('error');
+        setStatus("error");
       } else {
-        setMessage('Merci ! Vous êtes maintenant sur la liste d\'attente.');
-        setStatus('success');
-        setEmail('');
+        setMessage("Merci ! Vous êtes maintenant sur la liste d'attente.");
+        setStatus("success");
+        setEmail("");
+        setFirstName("");
+        setLastName("");
+        setPhone("");
+        setLinkedinUrl("");
+        setShowExtendedForm(false);
       }
     } catch (err) {
-      setMessage('Une erreur est survenue. Veuillez réessayer.');
-      setStatus('error');
+      setMessage("Une erreur est survenue. Veuillez réessayer.");
+      setStatus("error");
     }
   };
 
@@ -65,8 +97,9 @@ export default function WaitlistPage() {
             </h1>
 
             <p className="text-lg md:text-xl text-shiftly-marron max-w-2xl mx-auto mb-8">
-              La première plateforme de matching intelligent qui connecte les talents freelance
-              avec les meilleurs établissements d'hôtellerie et de restauration.
+              La première plateforme de matching intelligent qui connecte les
+              talents freelance avec les meilleurs établissements d'hôtellerie
+              et de restauration.
             </p>
 
             <div className="flex items-center justify-center gap-6 text-sm text-shiftly-marron mb-12">
@@ -91,7 +124,8 @@ export default function WaitlistPage() {
                 Rejoignez la liste d'attente
               </h2>
               <p className="text-shiftly-marron">
-                Soyez parmi les premiers à découvrir Shiftly lors de notre lancement
+                Soyez parmi les premiers à découvrir Shiftly lors de notre
+                lancement
               </p>
             </div>
 
@@ -104,16 +138,16 @@ export default function WaitlistPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    disabled={status === 'loading'}
+                    disabled={status === "loading"}
                     className="h-12 text-base border-shiftly-gris focus:border-shiftly-violet focus:ring-shiftly-violet"
                   />
                 </div>
                 <Button
                   type="submit"
-                  disabled={status === 'loading'}
+                  disabled={status === "loading"}
                   className="h-12 px-8 text-base font-semibold bg-gradient-to-r from-shiftly-violet to-shiftly-gold hover:from-shiftly-mauve hover:to-shiftly-gold/90 text-white transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50"
                 >
-                  {status === 'loading' ? (
+                  {status === "loading" ? (
                     <span className="flex items-center gap-2">
                       <span className="animate-spin">⏳</span>
                       Envoi...
@@ -127,12 +161,115 @@ export default function WaitlistPage() {
                 </Button>
               </div>
 
+              <div className="mt-4 text-center">
+                <button
+                  type="button"
+                  onClick={() => setShowExtendedForm(!showExtendedForm)}
+                  className="text-sm text-shiftly-violet hover:text-shiftly-gold transition-colors flex items-center justify-center gap-1 mx-auto"
+                >
+                  {showExtendedForm ? (
+                    <>
+                      <ChevronUp className="w-4 h-4" />
+                      Masquer les informations supplémentaires
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="w-4 h-4" />
+                      En savoir plus (optionnel)
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {showExtendedForm && (
+                <div className="mt-6 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label
+                        htmlFor="firstName"
+                        className="text-shiftly-marron mb-2 flex items-center gap-1"
+                      >
+                        <User className="w-4 h-4" />
+                        Prénom
+                      </Label>
+                      <Input
+                        id="firstName"
+                        type="text"
+                        placeholder="Votre prénom"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        disabled={status === "loading"}
+                        className="h-12 text-base border-shiftly-gris focus:border-shiftly-violet focus:ring-shiftly-violet"
+                      />
+                    </div>
+                    <div>
+                      <Label
+                        htmlFor="lastName"
+                        className="text-shiftly-marron mb-2 flex items-center gap-1"
+                      >
+                        <User className="w-4 h-4" />
+                        Nom
+                      </Label>
+                      <Input
+                        id="lastName"
+                        type="text"
+                        placeholder="Votre nom"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        disabled={status === "loading"}
+                        className="h-12 text-base border-shiftly-gris focus:border-shiftly-violet focus:ring-shiftly-violet"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor="phone"
+                      className="text-shiftly-marron mb-2 flex items-center gap-1"
+                    >
+                      <Phone className="w-4 h-4" />
+                      Téléphone
+                    </Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      placeholder="+33 6 12 34 56 78"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      disabled={status === "loading"}
+                      className="h-12 text-base border-shiftly-gris focus:border-shiftly-violet focus:ring-shiftly-violet"
+                    />
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor="linkedinUrl"
+                      className="text-shiftly-marron mb-2 flex items-center gap-1"
+                    >
+                      <Linkedin className="w-4 h-4" />
+                      URL LinkedIn
+                    </Label>
+                    <Input
+                      id="linkedinUrl"
+                      type="url"
+                      placeholder="https://linkedin.com/in/votre-profil"
+                      value={linkedinUrl}
+                      onChange={(e) => setLinkedinUrl(e.target.value)}
+                      disabled={status === "loading"}
+                      className="h-12 text-base border-shiftly-gris focus:border-shiftly-violet focus:ring-shiftly-violet"
+                    />
+                  </div>
+                  <p className="text-xs text-shiftly-marron/70 italic">
+                    Tous ces champs sont optionnels. Vous pouvez vous inscrire
+                    uniquement avec votre email.
+                  </p>
+                </div>
+              )}
+
               {message && (
                 <div
                   className={`mt-4 p-4 rounded-lg text-sm ${
-                    status === 'success'
-                      ? 'bg-green-50 text-green-800 border border-green-200'
-                      : 'bg-red-50 text-red-800 border border-red-200'
+                    status === "success"
+                      ? "bg-green-50 text-green-800 border border-green-200"
+                      : "bg-red-50 text-red-800 border border-red-200"
                   }`}
                 >
                   {message}
@@ -141,7 +278,8 @@ export default function WaitlistPage() {
             </form>
 
             <div className="mt-8 text-center text-sm text-shiftly-marron">
-              En vous inscrivant, vous acceptez de recevoir des mises à jour sur le lancement de Shiftly.
+              En vous inscrivant, vous acceptez de recevoir des mises à jour sur
+              le lancement de Shiftly.
             </div>
           </div>
 
@@ -150,9 +288,12 @@ export default function WaitlistPage() {
               <div className="w-12 h-12 rounded-full bg-gradient-to-r from-shiftly-violet to-shiftly-gold flex items-center justify-center mb-4">
                 <Sparkles className="w-6 h-6 text-white" />
               </div>
-              <h3 className="text-lg font-bold text-shiftly-mauve mb-2">Matching Intelligent</h3>
+              <h3 className="text-lg font-bold text-shiftly-mauve mb-2">
+                Matching Intelligent
+              </h3>
               <p className="text-shiftly-marron text-sm">
-                Un système de matching type Tinder pour trouver les opportunités parfaites
+                Un système de matching type Tinder pour trouver les opportunités
+                parfaites
               </p>
             </div>
 
@@ -160,9 +301,12 @@ export default function WaitlistPage() {
               <div className="w-12 h-12 rounded-full bg-gradient-to-r from-shiftly-violet to-shiftly-gold flex items-center justify-center mb-4">
                 <CheckCircle2 className="w-6 h-6 text-white" />
               </div>
-              <h3 className="text-lg font-bold text-shiftly-mauve mb-2">Profils Certifiés</h3>
+              <h3 className="text-lg font-bold text-shiftly-mauve mb-2">
+                Profils Certifiés
+              </h3>
               <p className="text-shiftly-marron text-sm">
-                Vérification et certification des freelances pour garantir la qualité
+                Vérification et certification des freelances pour garantir la
+                qualité
               </p>
             </div>
 
@@ -170,16 +314,19 @@ export default function WaitlistPage() {
               <div className="w-12 h-12 rounded-full bg-gradient-to-r from-shiftly-violet to-shiftly-gold flex items-center justify-center mb-4">
                 <Users className="w-6 h-6 text-white" />
               </div>
-              <h3 className="text-lg font-bold text-shiftly-mauve mb-2">Communication Intégrée</h3>
+              <h3 className="text-lg font-bold text-shiftly-mauve mb-2">
+                Communication Intégrée
+              </h3>
               <p className="text-shiftly-marron text-sm">
-                Outils de communication et suivi intégrés pour une collaboration fluide
+                Outils de communication et suivi intégrés pour une collaboration
+                fluide
               </p>
             </div>
           </div>
 
           <div className="text-center">
             <p className="text-shiftly-marron text-sm">
-              Une question ? Contactez-nous à{' '}
+              Une question ? Contactez-nous à{" "}
               <a
                 href="mailto:contact@shiftly.com"
                 className="text-shiftly-violet hover:text-shiftly-gold font-medium transition-colors"
